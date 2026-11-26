@@ -1,45 +1,64 @@
 # 从源码重建汉化
 
-## 构建方式
+本文档介绍如何在本地环境重新编译代理 DLL、重建汉化版 `LANGUAGE.POD` 并打包最终的覆盖版补丁。
 
-- **玩家安装**：直接解压覆盖仓库 `dist/BloodRayne2_CN_current.zip`，不需要编译器或源工程。
-- **源码重建**：下面的流程会编译 x86 代理 DLL、以 Steam 原版 LANGUAGE.POD 和仓库内的最终汉化资源重新构建 POD，再打包 15 个已校准视频字幕，输出同样的解压覆盖结构。**不读取本机已汉化的 DLL/POD，不依赖旧工作目录或历史测试备份。**
+## 构建方式概览
 
-## 准备环境
+- **普通玩家**：直接从 [v1.0 发布页](https://github.com/jyh9521/BloodRayne2-CN/releases/tag/v1.0) 下载 `BloodRayne2_CN_v1.0.zip` 解压覆盖即可，无需编译器或源码。
+- **开发者 / 源码重建**：运行下方的重建脚本会自动编译 x86 代理 DLL，结合 Steam 原版 `LANGUAGE.POD` 与仓库内的定稿汉化资源重新生成 POD，并打包 15 个已校准的视频字幕。整个过程完全独立，不读取本机已安装的汉化文件，也不依赖任何历史工作目录。
 
-1. Windows 10/11、Git、Python 3.10 或更高版本（只用标准库，不需要 pip 安装依赖）。
-2. Visual Studio 2022 Build Tools，安装“使用 C++ 的桌面开发”、MSVC x86/x64 工具和 Windows SDK。脚本通过 vswhere 自动定位。
-3. 从 Steam 干净安装 Terminal Cut 后取得原版 `LANGUAGE.POD`，其 SHA-256 必须为：
-   `2e3e0797e147e58b7308d3fcedbdf0a06cb433fb099fc24b8fb38943d8b358e4`。
-   游戏原始资源由 Steam 提供，不依赖本仓库保存它们。不要拿已安装汉化的 LANGUAGE.POD 当构建输入。
+## 环境准备
 
-## 开始构建
+1. **基础环境**：Windows 10/11、Git、Python 3.10 或更高版本（仅依赖标准库，无需 `pip install`）。
+2. **编译工具**：Visual Studio 2022 Build Tools，需勾选“使用 C++ 的桌面开发”、MSVC x86/x64 生成工具和 Windows SDK。构建脚本会通过 `vswhere` 自动定位编译器。
+3. **Steam 原版文件**：从 Steam 纯净安装的 *BloodRayne 2: Terminal Cut* 中获取未修改的 `LANGUAGE.POD`。其 SHA-256 必须严格匹配：
+   ```text
+   2e3e0797e147e58b7308d3fcedbdf0a06cb433fb099fc24b8fb38943d8b358e4
+   ```
+   > [!IMPORTANT]
+   > 游戏原始资源由 Steam 提供，本仓库不包含原版归档。请勿将已打过汉化补丁的 `LANGUAGE.POD` 作为构建输入。
+
+## 执行构建
 
 ```powershell
-git clone https://github.com/jyh9521/BloodRayne2_CN.git
-Set-Location BloodRayne2_CN
+git clone https://github.com/jyh9521/BloodRayne2-CN.git
+Set-Location BloodRayne2-CN
 python rebuild/build.py --base-pod "C:\Program Files (x86)\Steam\steamapps\common\BloodRayne 2 Terminal Cut\LANGUAGE.POD"
 ```
 
-输出：`build/reproducible/BloodRayne2_CN_rebuilt.zip`。直接把压缩包内容解压覆盖游戏根目录；没有版本检测或安装步骤。构建本身不修改 Steam 游戏目录，不启动游戏。
+- **默认输出**：`build/reproducible/BloodRayne2_CN_rebuilt.zip`。
+- **自定义输出目录**：可使用 `--output "D:\BR2-build"` 指定其他输出路径。
+- **原版 POD 路径**：`--base-pod` 接受任意位置存放的、哈希匹配的原版 `LANGUAGE.POD`。
 
-可用 `--output "D:\BR2-build"` 指定独立输出目录；`--base-pod` 接受任意位置保存的、哈希匹配的原版归档。
+构建过程不会修改 Steam 游戏目录，也不会启动游戏。生成的压缩包同样为解压覆盖版，直接解压至游戏根目录即可使用。
 
-## 源码与资源
+## 源码与资源说明
 
-- `rebuild/runtime/`：当前实装代理的完整 C++ 源码、导出定义、字幕与布局头文件。
-- `rebuild/assets/localized_resources.zip`、`resources.json`：最终汉化资源快照，包含 64 个替换项和 7 个新增项；字形图集已包含，无需安装字体。其 SHA-256 与最终 POD 的全部 393 个资源条目都列在清单中。
-- `video_subtitles/`：2026-09-30 调轴后的 15 个游戏载体编码 RU SRT。
-- `releases/overlay-20260930/`：覆盖版打包工具及说明。
-- `translation/`、历史 `releases/`：可编辑译文、术语表及各次构建/修订证据。
+| 路径 | 说明 |
+| --- | --- |
+| `rebuild/runtime/` | 当前代理 DLL 的完整 C++ 源码、导出定义、字幕与布局头文件 |
+| `rebuild/assets/localized_resources.zip`、`resources.json` | 定稿汉化资源快照（64 个替换项、7 个新增项，内含字形图集，无需系统字体）及最终 POD 全部 393 个条目的哈希清单 |
+| `video_subtitles/` | 2026-09-30 重新打轴后的 15 个游戏载体编码 `*_RU.srt` |
+| `releases/overlay-20260930/` | 覆盖版打包脚本与说明 |
+| `translation/`、`releases/` | 可编辑译文、术语表及各阶段历史修订记录 |
 
-重建使用的是**已定稿汉化资源快照**；并非重新运行所有历史脚本、重新听写或自动把任意 TSV 改动导入。以后修改翻译或功能时，必须同步更新权威资源/源码和相应清单，再重建验证和推送，不能只提交 TSV。
+> [!NOTE]
+> 根目录下的历史脚本 `build_release_zip.py` 仅用于从本机已安装的游戏目录打包快照，并非源码重建入口；如需从源码重建，请始终使用 `rebuild/build.py`。
 
-验证以资源内容为准：重建 POD 的全部 393 个条目须与发布资源清单逐条一致，CRC 正确；DLL 须为 x86 且含 5 个代理导出，15 个 SRT 保持原字节。POD 不累积历史废弃数据，容器总哈希会与旧实装 POD 不同；DLL 的整体哈希也可随编译器版本变化，**不承诺所有编译器逐字节同产物**。发布安装包保留了原实装版，重建包与发布包分别标识。
+## 验证标准与产物差异
 
-历史 `build_release_zip.py` 是本机当前实装快照打包工具，不是源码重建入口；需要重建请使用 `rebuild/build.py`。
+重建脚本会按内容逐项校验输出产物：
 
+- **POD 内容**：全部 393 个资源条目须与 `resources.json` 清单逐条一致，且 CRC 校验通过。由于重建过程不会累积历史废弃数据，新 POD 的容器总哈希会与早期实装版不同。
+- **代理 DLL**：须为 x86 架构且包含 5 个代理导出。受编译器小版本差异影响，不同环境下编译出的 DLL 不保证逐字节哈希一致。
+- **视频字幕**：15 个 SRT 文件保持原始字节不变。
 
 ## 修改译文
 
-`translation/` 保存译文和术语表。当前重建入口使用 `rebuild/assets/` 中的定稿资源，不会自动导入 TSV 的改动。修改译文后，需要导入对应资源、同步更新字库与资源清单，再重建发布包。历史导入工具及处理过程保存在 `tools/` 和 `releases/`。
+`translation/` 目录保存了可编辑的译文表与术语表。需要注意的是，`rebuild/build.py` 直接读取 `rebuild/assets/` 中的定稿资源快照，**不会自动导入对 TSV 文件的修改**。
+
+如果你需要修改译文或调整功能：
+
+1. 参考 `tools/` 和 `releases/` 中的导入与处理工具，将新译文重新导入对应资源并更新字形图集。
+2. 同步更新 `rebuild/assets/` 下的资源快照与 `resources.json` 清单（如涉及代码改动，同步更新 `rebuild/runtime/`）。
+3. 重新运行 `rebuild/build.py` 验证并打包，切勿只提交 TSV 改动。

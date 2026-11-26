@@ -1,11 +1,20 @@
-# Speech inventory for review (2026-09-27)
+# Speech Inventory for Review (2026-09-27)
 
-This is **only an extraction and review pack**. It does not install subtitles, alter PODs, or start the game.
+> [!NOTE]
+> This is an **extraction and review pack only**. It does not install subtitles, modify POD archives, or launch the game.
 
-- `scripted_other_speech.tsv`: the 127 newly boxed `dbStartSay` occurrences not classified as Rayne. There are 119 unique audio keys. Each row includes script/line, actor token, the original English subtitle, and the current Chinese caption decoded from the installed `LANGUAGE.POD` carrier encoding. Repeated keys remain separate because they occur in different scripts.
-- `engine_rayne_categories.tsv`: all 72 engine voice-table IDs, their prefix, broad meaning, WAV count, and filenames. These IDs contain three duplicated prefixes (`Rayne_XerxBDie`, `Rayne_XerxBGetHurt`, `Rayne_XerxBTaunt`); hence 69 distinct prefixes. Twenty-four IDs have no matching English WAV in the current archive.
-- `engine_rayne_samples.tsv`: all 253 distinct matching WAVs. The 72 IDs account for 262 sample references because the XerxB samples are referenced twice. A small-model English ASR pass supplied **draft text**, not authoritative dialogue. Seven recordings yielded no speech; some grunts/screams produce hallucinated words. Use the category, duration and archive filename when reviewing. Only one WAV key appears in the shipped English text resources; the rest are audio-only and cannot be recovered as official script text from `LANGUAGE.POD`.
+## Output Files
 
-`source_hashes.json` records the read-only inputs. `verify.py` rechecks output counts and unchanged input hashes. `ROLLBACK.sh` deletes only these generated reports from a specified absolute directory; it does not alter game files.
+- **`scripted_other_speech.tsv`**: The **127** newly boxed `dbStartSay` occurrences not classified as Rayne (**119** unique audio keys). Each row includes the script/line, actor token, original English subtitle, and current Chinese caption decoded from the installed `LANGUAGE.POD` carrier encoding. Repeated keys are kept separate because they appear in different scripts.
+- **`engine_rayne_categories.tsv`**: All **72** engine voice-table IDs with their prefix, general meaning, WAV count, and filenames. Three prefixes are duplicated (`Rayne_XerxBDie`, `Rayne_XerxBGetHurt`, `Rayne_XerxBTaunt`), yielding **69** distinct prefixes. **24** IDs have no matching English WAV in the current archive.
+- **`engine_rayne_samples.tsv`**: All **253** distinct matching WAVs (accounting for **262** sample references across the 72 IDs because the XerxB samples are referenced twice). Draft text was generated via a small-model English ASR pass and should be treated as a rough aid only—7 clips yielded no speech, and grunts/screams may produce hallucinated text. Use category, duration, and filename when reviewing. Only one WAV key appears in the shipped English text resources; the rest are audio-only and have no official script text in `LANGUAGE.POD`.
 
-The 72 categories are **not** currently captioned by the existing `dbStartSay` patch. This report is intended for deciding which engine-selected speech should receive a separate caption path. In particular, ambient, hint, alert, attack, kill, and taunt categories contain many full spoken lines, while other categories contain nonverbal effort/pain sounds.
+## Verification & Cleanup
+
+- `source_hashes.json` records the read-only input hashes.
+- `verify.py` rechecks output counts and confirms input hashes are unchanged.
+- `ROLLBACK.sh` deletes only these generated reports from a specified absolute directory and does not touch game files.
+
+## Scope Note
+
+The 72 engine categories are **not** covered by the `dbStartSay` patch. This inventory was compiled to decide which engine-selected cues warrant a dedicated runtime caption hook—especially `ambient`, `hint`, `alert`, `attack`, `kill`, and `taunt` lines (which contain full spoken dialogue), as opposed to nonverbal effort or pain sounds.
